@@ -125,5 +125,5 @@ def delete_task(task_id: int):
 
     raise HTTPException(
         status_code=404,
-        detail=f"Task {task_id} not found"
+        detail=f"Task {task_id} not a found"
     )
