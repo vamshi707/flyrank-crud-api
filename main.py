@@ -133,7 +133,6 @@ def create_task(body: dict | None = None):
         "done": False
     }
 
-
 @app.put("/tasks/{task_id}")
 def update_task(task_id: int, body: dict | None = None):
     if not body:
@@ -142,49 +141,95 @@ def update_task(task_id: int, body: dict | None = None):
             detail="Request body cannot be empty"
         )
 
-    for task in tasks:
-        if task["id"] == task_id:
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
 
-            if "title" in body:
-                if not isinstance(body["title"], str) or not body["title"].strip():
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Title cannot be empty"
-                    )
+    if "title" in body:
+        if not isinstance(body["title"], str) or not body["title"].strip():
+            conn.close()
+            raise HTTPException(
+                status_code=400,
+                detail="Title cannot be empty"
+            )
 
-                task["title"] = body["title"].strip()
+    if "done" in body:
+        if not isinstance(body["done"], bool):
+            conn.close()
+            raise HTTPException(
+                status_code=400,
+                detail="Done must be true or false"
+            )
 
-            if "done" in body:
-                if not isinstance(body["done"], bool):
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Done must be true or false"
-                    )
+    if "title" not in body and "done" not in body:
+        conn.close()
+        raise HTTPException(
+            status_code=400,
+            detail="Provide title or done"
+        )
 
-                task["done"] = body["done"]
-
-            if "title" not in body and "done" not in body:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Provide title or done"
-                )
-
-            return task
-
-    raise HTTPException(
-        status_code=404,
-        detail=f"Task {task_id} not found"
+    cursor.execute(
+        "SELECT * FROM tasks WHERE id = ?",
+        (task_id,)
     )
+
+    if cursor.fetchone() is None:
+        conn.close()
+        raise HTTPException(
+            status_code=404,
+            detail=f"Task {task_id} not found"
+        )
+
+    if "title" in body and "done" in body:
+        cursor.execute(
+            "UPDATE tasks SET title = ?, done = ? WHERE id = ?",
+            (body["title"].strip(), int(body["done"]), task_id)
+        )
+    elif "title" in body:
+        cursor.execute(
+            "UPDATE tasks SET title = ? WHERE id = ?",
+            (body["title"].strip(), task_id)
+        )
+    else:
+        cursor.execute(
+            "UPDATE tasks SET done = ? WHERE id = ?",
+            (int(body["done"]), task_id)
+        )
+
+    conn.commit()
+
+    cursor.execute(
+        "SELECT * FROM tasks WHERE id = ?",
+        (task_id,)
+    )
+
+    row = cursor.fetchone()
+    conn.close()
+
+    return {
+        "id": row[0],
+        "title": row[1],
+        "done": bool(row[2])
+    }
 
 
 @app.delete("/tasks/{task_id}", status_code=204)
 def delete_task(task_id: int):
-    for index, task in enumerate(tasks):
-        if task["id"] == task_id:
-            tasks.pop(index)
-            return Response(status_code=204)
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
 
-    raise HTTPException(
-        status_code=404,
-        detail=f"Task {task_id} not a found"
+    cursor.execute(
+        "DELETE FROM tasks WHERE id = ?",
+        (task_id,)
     )
+
+    if cursor.rowcount == 0:
+        conn.close()
+        raise HTTPException(
+            status_code=404,
+            detail=f"Task {task_id} not found"
+        )
+
+    conn.commit()
+    conn.close()
+
+    return Response(status_code=204)
