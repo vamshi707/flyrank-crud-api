@@ -58,4 +58,12 @@ content-type: application/json
 
 SWAGGER UI SCREENSHOT
 
-Swagger screenshot: image.png
+Swagger screenshot:db-image copy.png
+
+DATABASE EXPLORATION
+
+Example SQL query:
+
+SELECT * FROM tasks;
+
+SQLite database was explored and modified using DB Browser for SQLite, and the FastAPI API correctly reflected the database changes.
