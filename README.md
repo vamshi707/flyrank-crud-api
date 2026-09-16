@@ -12,13 +12,20 @@ FEATURES
 - Input validation
 - JSON error responses
 - Swagger UI for API testing
-- In-memory task storage
+- SQLite database storage
+- Data persists after server restart
 
 TECH STACK
 
 - Python 3.10+
 - FastAPI
 - Uvicorn
+- SQLite
+
+WHY SQLITE
+
+SQLite is used to replace the in-memory task list from A1 with persistent database storage.
+The API endpoints remain the same, but task data is now stored in a SQLite database.
 
 RUN THE PROJECT
 
@@ -37,6 +44,15 @@ http://127.0.0.1:8000
 Swagger UI:
 
 http://127.0.0.1:8000/docs
+
+DATABASE
+
+Database file:
+
+tasks.db
+
+The tasks.db file and tasks table are created automatically when the application starts.
+The database file is gitignored so each clean clone can create its own database.
 
 API ENDPOINTS
 
@@ -58,7 +74,7 @@ content-type: application/json
 
 SWAGGER UI SCREENSHOT
 
-Swagger screenshot:db-image copy.png
+Swagger screenshot: image.png
 
 DATABASE EXPLORATION
 
@@ -67,3 +83,7 @@ Example SQL query:
 SELECT * FROM tasks;
 
 SQLite database was explored and modified using DB Browser for SQLite, and the FastAPI API correctly reflected the database changes.
+
+DATABASE SCREENSHOT
+
+Database screenshot: db-image copy.png
