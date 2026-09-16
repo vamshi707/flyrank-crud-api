@@ -114,20 +114,24 @@ def create_task(body: dict | None = None):
             detail="Title cannot be empty"
         )
 
-    new_id = 1
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
 
-    while any(task["id"] == new_id for task in tasks):
-        new_id += 1
+    cursor.execute(
+        "INSERT INTO tasks (title, done) VALUES (?, ?)",
+        (title.strip(), 0)
+    )
 
-    new_task = {
+    new_id = cursor.lastrowid
+
+    conn.commit()
+    conn.close()
+
+    return {
         "id": new_id,
         "title": title.strip(),
         "done": False
     }
-
-    tasks.append(new_task)
-
-    return new_task
 
 
 @app.put("/tasks/{task_id}")
