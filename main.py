@@ -1,6 +1,42 @@
+import sqlite3
 from fastapi import FastAPI, HTTPException, Response
 
+
 app = FastAPI()
+
+DB_NAME = "tasks.db"
+
+
+def init_db():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            done INTEGER NOT NULL
+        )
+    """)
+
+    cursor.execute("SELECT COUNT(*) FROM tasks")
+    count = cursor.fetchone()[0]
+
+    if count == 0:
+        cursor.executemany(
+            "INSERT INTO tasks (title, done) VALUES (?, ?)",
+            [
+                ("Practice Python", 0),
+                ("Build AI project", 0),
+                ("Learn FastAPI", 1)
+            ]
+        )
+
+    conn.commit()
+    conn.close()
+
+
+init_db()
 
 
 tasks = [
