@@ -40,3 +40,24 @@ From the repository root:
 
 ```bash
 pip install -r scraper/requirements.txt
+
+## Real Run Report
+
+```json
+{
+  "discovered_urls": 60,
+  "unique_urls": 60,
+  "valid_records": 60,
+  "invalid_records": 0,
+  "failed_page_count": 1
+}
+
+
+Save it.
+
+Then:
+
+```bash
+git add scraper/README.md
+git commit -m "A5: document real scraper run"
+git push
