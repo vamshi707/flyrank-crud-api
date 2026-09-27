@@ -1,0 +1,18 @@
+{
+  "started_at": "2026-09-27T15:54:47.819897+00:00",
+  "duration_seconds": 1.55,
+  "catalogue_pages": 3,
+  "discovered_urls": 60,
+  "unique_urls": 60,
+  "pages_fetched": 0,
+  "cache_hits": 63,
+  "valid_records": 60,
+  "invalid_records": 0,
+  "failed_pages": [
+    {
+      "url": "https://books.toscrape.com/fake-book-for-testing/",
+      "reason": "HTTP 404"
+    }
+  ],
+  "failed_page_count": 1
+}
