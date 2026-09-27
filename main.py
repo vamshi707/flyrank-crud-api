@@ -1,9 +1,18 @@
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Response, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel
+from supabase_client import supabase
 from db import init_db, get_connection
 
 app = FastAPI()
+security = HTTPBearer()
 
-init_db()
+
+class AuthBody(BaseModel):
+    email: str
+    password: str
+
+
 
 
 @app.get("/")
@@ -19,7 +28,108 @@ def root():
 def health():
     return {"status": "ok"}
 
+@app.post("/auth/signup", status_code=201)
+def signup(body: AuthBody):
+    try:
+        result = supabase.auth.sign_up({
+            "email": body.email,
+            "password": body.password
+        })
 
+        return {
+            "message": "Signup successful",
+            "user": result.user
+        }
+
+    except Exception:
+        raise HTTPException(
+            status_code=400,
+            detail="Signup failed"
+        )
+
+@app.post("/auth/login")
+def login(body: AuthBody):
+    try:
+        result = supabase.auth.sign_in_with_password({
+            "email": body.email,
+            "password": body.password
+        })
+
+        return {
+            "message": "Login successful",
+            "access_token": result.session.access_token,
+            "refresh_token": result.session.refresh_token
+        }
+
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+@app.get("/public/info")
+def public_info():
+    return {
+        "message": "This is a public endpoint",
+        "status": "ok"
+    }
+
+def verify_token(token: str):
+    try:
+        response = supabase.auth.get_user(token)
+
+        if response.user is None:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid token"
+            )
+
+        return response.user
+
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token"
+        )
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    return verify_token(credentials.credentials)
+
+
+@app.get("/protected/profile")
+def protected_profile(user=Depends(get_current_user)):
+    return {
+        "message": "Protected profile",
+        "user": {
+            "id": user.id,
+            "email": user.email
+        }
+    }
+
+
+@app.get("/protected/dashboard")
+def protected_dashboard(user=Depends(get_current_user)):
+    return {
+        "message": "Welcome to protected dashboard",
+        "user": {
+            "id": user.id,
+            "email": user.email
+        }
+    }
+
+
+@app.post("/auth/logout", status_code=204)
+def logout(user=Depends(get_current_user)):
+    try:
+        supabase.auth.sign_out()
+    except Exception:
+        pass
+
+    return Response(status_code=204)
+    
 @app.get("/tasks")
 def get_tasks():
     with get_connection() as conn:

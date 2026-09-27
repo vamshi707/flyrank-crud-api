@@ -158,3 +158,46 @@ Example:
 curl -i http://127.0.0.1:8000/tasks
 
 The API returns the tasks stored in PostgreSQL.
+
+
+
+Continue **immediately after** `fastapi dev main.py` with:
+
+```markdown
+### Authentication Endpoints
+
+| Method | Endpoint | Authentication |
+|---|---|---|
+| POST | /auth/signup | Public |
+| POST | /auth/login | Public |
+| POST | /auth/logout | Bearer Token |
+| GET | /protected/profile | Bearer Token |
+| GET | /protected/dashboard | Bearer Token |
+| GET | /public/info | Public |
+
+### Supabase Authentication
+
+This project uses Supabase Auth for:
+
+- User signup
+- User login
+- JWT verification
+- Protected routes
+- Logout
+
+Supabase credentials are stored in `.env`.
+
+The `.env` file is ignored by Git and is never committed.
+
+### Swagger
+
+Swagger UI:
+
+http://127.0.0.1:8000/docs
+
+A Swagger screenshot is included in the repository.
+
+### Security
+
+Protected endpoints require a valid Supabase JWT Bearer token.
+Invalid or missing tokens return HTTP 401.
