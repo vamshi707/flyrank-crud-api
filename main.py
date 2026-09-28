@@ -1,3 +1,8 @@
+import os
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from fastapi import Request
+from src.llm.schema import TriageInput, TriageOutput, Category, Urgency
 from fastapi import FastAPI, HTTPException, Response, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
@@ -316,3 +321,34 @@ def delete_task(task_id: int):
         conn.commit()
 
     return Response(status_code=204)
+
+@app.post("/triage", response_model=TriageOutput)
+def triage(data: TriageInput):
+    if os.getenv("LLM_STUB") == "1":
+        return TriageOutput(
+            category=Category.other,
+            urgency=Urgency.normal,
+            confidence=0.5,
+            reason="Stub response for testing."
+        )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request,
+    exc: RequestValidationError
+):
+    errors = exc.errors()
+
+    field = "unknown"
+
+    if errors:
+        location = errors[0].get("loc", [])
+        if location:
+            field = str(location[-1])
+
+    return JSONResponse(
+        status_code=400,
+        content={
+            "message": f"Invalid field: {field}"
+        }
+    )
