@@ -1,3 +1,5 @@
+import json
+from src.llm.service import classify_with_repair
 import os
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -322,8 +324,24 @@ def delete_task(task_id: int):
 
     return Response(status_code=204)
 
+def parse_triage_response(response_text: str) -> TriageOutput:
+    data = json.loads(response_text)
+    return TriageOutput.model_validate(data)
+
+
 @app.post("/triage", response_model=TriageOutput)
 def triage(data: TriageInput):
+
+    # Kill switch
+    if os.getenv("LLM_ENABLED", "true").lower() == "false":
+        return TriageOutput(
+            category=Category.other,
+            urgency=Urgency.low,
+            confidence=0.0,
+            reason="LLM is currently disabled."
+        )
+
+    # Stub mode
     if os.getenv("LLM_STUB") == "1":
         return TriageOutput(
             category=Category.other,
@@ -331,6 +349,9 @@ def triage(data: TriageInput):
             confidence=0.5,
             reason="Stub response for testing."
         )
+
+
+    return classify_with_repair(data.text)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(

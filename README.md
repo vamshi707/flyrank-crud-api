@@ -201,3 +201,23 @@ A Swagger screenshot is included in the repository.
 
 Protected endpoints require a valid Supabase JWT Bearer token.
 Invalid or missing tokens return HTTP 401.
+
+## A17 – LLM Support Triage
+
+### Endpoint
+
+`POST /triage`
+
+The endpoint accepts a customer support message and returns structured JSON containing:
+
+- `category`: billing, bug, feature, or other
+- `urgency`: low, normal, or high
+- `confidence`: 0.0 to 1.0
+- `reason`: one short sentence
+
+### Example request
+
+```bash
+curl -X POST "http://127.0.0.1:8000/triage" \
+  -H "Content-Type: application/json" \
+  -d "{\"text\":\"My card was charged twice for the same order.\"}"
