@@ -53,11 +53,4 @@ pip install -r scraper/requirements.txt
 }
 
 
-Save it.
-
-Then:
-
-```bash
-git add scraper/README.md
-git commit -m "A5: document real scraper run"
-git push
+ 
